@@ -1,11 +1,11 @@
 <template>
   <div class="page">
     <img src="../assets/icons/logo.svg" />
-  <AppInput
-    :selectedUser="selectedUser"
-    @select="handleSelect"
-    @clear="clearUser"
-  />
+    <AppInput
+      :selectedUser="selectedUser"
+      @select="handleSelect"
+      @clear="clearUser"
+    />
   </div>
 </template>
 
@@ -13,9 +13,16 @@
 import { ref } from 'vue'
 import AppInput from '../components/AppInput.vue'
 
-const selectedUser = ref(null)
+interface User {
+    id: number
+    name: string
+    username: string
+    email: string
+}
 
-function handleSelect(user: any) {
+const selectedUser = ref<User | null>(null)
+
+function handleSelect(user: User) {
   selectedUser.value = user
 }
 
@@ -25,13 +32,15 @@ function clearUser() {
 </script>
 
 <style scoped>
+@import '../styles/variables.css';
+
 .page {
-  background-color: #323230;
+  background-color: var(--dark-gray);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 56px;
-  margin-top: 300px;
+  height: 100vh;
 }
 </style>

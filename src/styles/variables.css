@@ -1,0 +1,12 @@
+:root {
+  --light-gray: #383836;
+  --dark-gray: #323230;
+  --white: white;
+  --black: black;
+
+  --background: #242424;
+  --background2: #888;
+  --background3: #666;
+
+  --shadow: rgba(0, 0, 0, 0.25);
+}

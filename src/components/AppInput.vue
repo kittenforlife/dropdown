@@ -1,11 +1,10 @@
 <template>
   <div class="wrapper">
-
-    <img class="icon-left" src="../assets/icons/logo2.svg" />
+    <img class="icon" src="../assets/icons/logo2.svg" />
 
     <div v-if="selectedUser" class="tag">
       {{ selectedUser.name }}
-      <span class="close" @click="clear">×</span>
+      <img class="close-icon" @click="clear" src="../assets/icons/close-circle.svg" />
     </div>
 
     <input
@@ -15,7 +14,7 @@
       :placeholder="selectedUser ? '' : 'Введите запрос'"
     />
 
-    <img v-if="!selectedUser" class="icon-right" src="../assets/icons/search.svg" />
+    <img v-if="!selectedUser" class="icon" src="../assets/icons/search.svg" />
 
     <ul v-if="!selectedUser && list.length" class="dropdown">
       <li
@@ -31,77 +30,82 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-
 interface User {
-    id: number
-    name: string
-    username?: string
-    email?: string
+  id: number
+  name: string
+  username: string
+  email: string
 }
 
 const props = defineProps<{
-    selectedUser: User | null
+  selectedUser: User | null
 }>()
 const emit = defineEmits<{
-    (e: 'select', user: User): void
-    (e: 'clear'): void
+  (e: 'select', user: User): void
+  (e: 'clear'): void
 }>()
 
 const query = ref('')
 const list = ref<User[]>([])
+const isLoading = ref(false)
+const apiBase = 'https://apimocker.com'
 
 async function getUsers() {
-    if (!query.value) {
-        list.value = []
-        return
+  if (!query.value) {
+    list.value = []
+    return
+  }
+
+  try {
+    isLoading.value = true;
+    const q = encodeURIComponent(query.value)
+    const res = await fetch(`${apiBase}/users/search?q=${q}`)
+    
+    if (!res.ok) {
+      list.value = []
+      return
     }
 
-    try {
-        const q = encodeURIComponent(query.value)
-        const res = await fetch(`https://apimocker.com/users/search?q=${q}`)
-        
-        if (!res.ok) {
-            list.value = []
-            return
-        }
-
-        const data = await res.json()
-        const results = data?.results ?? []
-        list.value = results.map((r: any) => ({
-            id: r.id,
-            name: r.name,
-            username: r.username,
-            email: r.email
-        }))
-    } catch (err) {
-        console.error('error', err)
-        list.value = []
-    }
+    const data = await res.json()
+    const results = data?.results ?? []
+    list.value = results.map((r: User) => ({
+      id: r.id,
+      name: r.name,
+      username: r.username,
+      email: r.email
+    }))
+  } catch (err) {
+    console.error('error', err)
+    list.value = []
+  } finally {
+    isLoading.value = false;
+  }
 }
 
 function select(user: User) {
-    emit('select', user)
-    query.value = ''
-    list.value = []
+  emit('select', user)
+  query.value = ''
+  list.value = []
 }
 
 function clear() {
-    emit('clear')
+  emit('clear')
 }
 
 </script>
 
 <style scoped>
+@import '../styles/variables.css';
 
 .wrapper {
   position: relative;
   width: calc(90vw - 800px);
-  min-width: 250px;
+  min-width: 450px;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  background: #242424;
+  background: var(--background);
   border-radius: 10px;
   padding: 0 30px;
 }
@@ -109,20 +113,15 @@ function clear() {
 input {
   width: 100%;
   height: 80px;
-  color: white;
-  background: #242424;
+  color: var(--white);
+  background: var(--background);
   padding-left: 30px;
   font-size: 15px;
   border: none;
-  outline: black;
+  outline: var(--black);
 }
 
-.icon-left {
-  width: 40px;
-  height: 40px;
-}
-
-.icon-right {
+.icon {
   width: 40px;
   height: 40px;
 }
@@ -130,17 +129,39 @@ input {
 .dropdown {
   position: absolute;
   top: 100px;
-  width: calc(90vw - 740px);
-  min-width: 350px;
-  background: #383836;
-  color: white;
+  width: calc(90vw - 800px);
+  min-width: 450px;
+  background: var(--light-gray);
+  color: var(--white);
   padding: 0;
   overflow-y: auto;
   max-height: 200px;
   border-radius: 10px;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  box-shadow: 0px 4px 4px var(--shadow);
   font-family: 'Montserrat', sans-serif;
   padding: 20px 0px;
+}
+
+.dropdown {
+  scrollbar-width: auto;
+  scrollbar-color: var(--background3) var(--light-gray);
+}
+
+.dropdown::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dropdown::-webkit-scrollbar-track {
+  background: var(--light-gray);
+}
+
+.dropdown::-webkit-scrollbar-thumb {
+  background: var(--background3);
+  border-radius: 4px;
+}
+
+.dropdown::-webkit-scrollbar-thumb:hover {
+  background: var(--background2);
 }
 
 .dropdown li {
@@ -151,7 +172,7 @@ input {
 }
 
 .dropdown li:hover {
-  background: #242424;
+  background: var(--background);
   cursor: pointer;
 }
 
@@ -160,19 +181,22 @@ input {
   top: 50%;
   left: 80px;
   transform: translateY(-50%);
-  background: black;
-  color: white;
+  background: var(--black);
+  color: var(--white);
   height: 40px;
   border-radius: 10px;
   display: flex;
   align-items: center;
   gap: 20px;
-  padding: 0px 20px;
+  padding-left: 20px;
+  padding-right: 10px;
   font-family: 'Montserrat', sans-serif;
 }
 
-.close {
+.close-icon {
   cursor: pointer;
+  height: 17px;
+  width: 17px;
 }
 
 </style>
